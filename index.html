@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#09090b">
+    <title>RISHU</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap');
+
+        :root {
+            --bg-color: #09090b;
+            --surface: #18181b;
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.5);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --x-color: #ef4444;
+            --o-color: #06b6d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+            /* Removes the blue tap highlight on mobile devices */
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .app-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at top, #18181b 0%, #09090b 100%);
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            padding: 24px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .screen.active {
+            display: flex;
+            opacity: 1;
+            animation: screenIn 0.5s ease forwards;
+        }
+
+        @keyframes screenIn {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Splash & Logo */
+        .logo {
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 4px 12px rgba(255,255,255,0.1));
+        }
+
+        .splash-logo {
+            animation: pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { filter: drop-shadow(0 0 15px rgba(255,255,255,0.2)); transform: scale(1); }
+            50% { filter: drop-shadow(0 0 30px rgba(255,255,255,0.4)); transform: scale(1.05); }
+        }
+
+        /* Menu */
+        .menu-title {
+            margin-bottom: 60px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 18px;
+            margin: 10px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--surface);
+            color: var(--text-main);
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border: none;
+            box-shadow: 0 8px 25px var(--primary-glow);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--surface);
+        }
+
+        /* Game Board */
+        .game-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .status-badge {
+            background: var(--surface);
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            width: 100%;
+            max-width: 340px;
+            aspect-ratio: 1;
+        }
+
+        .cell {
+            background: var(--surface);
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: inset 0 -4px 10px rgba(0,0,0,0.3), 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .cell:active {
+            transform: scale(0.92);
+        }
+
+        .cell.x { 
+            color: var(--x-color); 
+            text-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+            animation: pop 0.3s forwards;
+        }
+        
+        .cell.o { 
+            color: var(--o-color); 
+            text-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+            animation: pop 0.3s forwards;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .nav-btn {
+            margin-top: 40px;
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 10px 20px;
+        }
+
+        /* Result Popup */
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 24px;
+        }
+
+        .overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .popup-card {
+            background: var(--surface);
+            width: 100%;
+            padding: 40px 24px;
+            border-radius: 24px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transform: scale(0.8);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .overlay.active .popup-card {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .result-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .result-subtitle {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Splash Screen -->
+        <div id="splashScreen" class="screen active">
+            <h1 class="logo splash-logo">RISHU</h1>
+        </div>
+
+        <!-- Main Menu -->
+        <div id="menuScreen" class="screen">
+            <h1 class="logo menu-title">RISHU</h1>
+            <button class="btn btn-primary" onclick="initGame('AI')">Play vs Computer</button>
+            <button class="btn btn-secondary" onclick="initGame('2P')">2 Players</button>
+        </div>
+
+        <!-- Game Interface -->
+        <div id="gameScreen" class="screen">
+            <div class="game-header">
+                <div class="logo" style="font-size: 1.5rem; letter-spacing: 4px;">RISHU</div>
+                <div class="status-badge" id="statusIndicator">Player X</div>
+            </div>
+            
+            <div class="board" id="gameBoard">
+                <div class="cell" onclick="handleMove(0)"></div>
+                <div class="cell" onclick="handleMove(1)"></div>
+                <div class="cell" onclick="handleMove(2)"></div>
+                <div class="cell" onclick="handleMove(3)"></div>
+                <div class="cell" onclick="handleMove(4)"></div>
+                <div class="cell" onclick="handleMove(5)"></div>
+                <div class="cell" onclick="handleMove(6)"></div>
+                <div class="cell" onclick="handleMove(7)"></div>
+                <div class="cell" onclick="handleMove(8)"></div>
+            </div>
+
+            <button class="nav-btn" onclick="goToMenu()">Quit Game</button>
+        </div>
+
+        <!-- Result Overlay -->
+        <div id="resultOverlay" class="overlay">
+            <div class="popup-card">
+                <h2 class="result-title" id="resultTitle">You Win!</h2>
+                <p class="result-subtitle" id="resultSub">Great job!</p>
+                <button class="btn btn-primary" onclick="restartGame()">Play Again</button>
+                <button class="btn btn-secondary" onclick="goToMenu()" style="margin-top: 12px;">Main Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        'use strict';
+
+        let boardData = Array(9).fill(null);
+        let currentPlayer = 'X';
+        let isGameActive = false;
+        let mode = '2P'; 
+
+        const winningCombinations = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
+        ];
+
+        const ui = {
+            splash: document.getElementById('splashScreen'),
+            menu: document.getElementById('menuScreen'),
+            game: document.getElementById('gameScreen'),
+            overlay: document.getElementById('resultOverlay'),
+            status: document.getElementById('statusIndicator'),
+            cells: document.querySelectorAll('.cell'),
+            resTitle: document.getElementById('resultTitle'),
+            resSub: document.getElementById('resultSub')
+        };
+
+        // Splash Screen Transition
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                switchScreen(ui.splash, ui.menu);
+            }, 2000);
+        });
+
+        function switchScreen(hideElement, showElement) {
+            hideElement.classList.remove('active');
+            setTimeout(() => {
+                showElement.classList.add('active');
+            }, 50);
+        }
+
+        function initGame(selectedMode) {
+            mode = selectedMode;
+            switchScreen(ui.menu, ui.game);
+            restartGame();
+        }
+
+        function goToMenu() {
+            ui.overlay.classList.remove('active');
+            switchScreen(ui.game, ui.menu);
+            isGameActive = false;
+        }
+
+        function restartGame() {
+            boardData = Array(9).fill(null);
+            currentPlayer = 'X';
+            isGameActive = true;
+            ui.overlay.classList.remove('active');
+            
+            ui.cells.forEach(cell => {
+                cell.innerText = '';
+                cell.className = 'cell';
+            });
+            updateStatus();
+        }
+
+        function handleMove(index) {
+            if (!isGameActive || boardData[index] !== null) return;
+
+            commitMove(index, currentPlayer);
+
+            if (checkGameState()) return;
+
+            if (mode === 'AI' && isGameActive && currentPlayer === 'O') {
+                isGameActive = false; 
+                ui.status.innerText = 'Thinking...';
+                setTimeout(executeAIMove, 500);
+            }
+        }
+
+        function commitMove(index, player) {
+            boardData[index] = player;
+            ui.cells[index].innerText = player;
+            ui.cells[index].classList.add(player.toLowerCase());
+            
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            if(isGameActive) updateStatus();
+        }
+
+        function updateStatus() {
+            if (mode === 'AI' && currentPlayer === 'O') {
+                ui.status.innerText = 'Computer Turn';
+            } else {
+                ui.status.innerText = `Player ${currentPlayer} Turn`;
+            }
+        }
+
+        function checkGameState() {
+            let winner = null;
+
+            for (let combo of winningCombinations) {
+                const [a, b, c] = combo;
+                if (boardData[a] && boardData[a] === boardData[b] && boardData[a] === boardData[c]) {
+                    winner = boardData[a];
+                    break;
+                }
+            }
+
+            if (winner) {
+                endGame(winner);
+                return true;
+            }
+
+            if (!boardData.includes(null)) {
+                endGame('Draw');
+                return true;
+            }
+
+            return false;
+        }
+
+        function endGame(result) {
+            isGameActive = false;
+            
+            if (result === 'Draw') {
+                ui.resTitle.innerText = "It's a Draw!";
+                ui.resTitle.style.color = "#f8fafc";
+                ui.resSub.innerText = "Tough battle!";
+            } else {
+                if (mode === 'AI') {
+                    if (result === 'X') {
+                        ui.resTitle.innerText = "You Win! 🎉";
+                        ui.resTitle.style.color = "var(--o-color)";
+                        ui.resSub.innerText = "You beat the computer.";
+                    } else {
+                        ui.resTitle.innerText = "You Lose!";
+                        ui.resTitle.style.color = "var(--x-color)";
+                        ui.resSub.innerText = "Better luck next time.";
+                    }
+                } else {
+                    ui.resTitle.innerText = `Player ${result} Wins! 🏆`;
+                    ui.resTitle.style.color = result === 'X' ? 'var(--x-color)' : 'var(--o-color)';
+                    ui.resSub.innerText = "Outstanding moves.";
+                }
+            }
+            
+            setTimeout(() => {
+                ui.overlay.classList.add('active');
+            }, 300);
+        }
+
+        // AI Logic
+        function executeAIMove() {
+            let bestMove = findWinningMove('O') ?? findWinningMove('X');
+            
+            if (bestMove === null) {
+                if (boardData[4] === null) bestMove = 4;
+            }
+            
+            if (bestMove === null) {
+                const emptySpots = boardData.map((val, idx) => val === null ? idx : null).filter(v => v !== null);
+                if (emptySpots.length > 0) {
+                    bestMove = emptySpots[Math.floor(Math.random() * emptySpots.length)];
+                }
+            }
+
+            if (bestMove !== null) {
+                isGameActive = true;
+                commitMove(bestMove, 'O');
+                checkGameState();
+            }
+        }
+
+        function findWinningMove(player) {
+            for (let combo of winningCombinations) {
+                const [a, b, c] = combo;
+                const vals = [boardData[a], boardData[b], boardData[c]];
+                if (vals.filter(v => v === player).length === 2 && vals.includes(null)) {
+                    return combo[vals.indexOf(null)];
+                }
+            }
+            return null;
+        }
+    </script>
+</body>
+</html>
